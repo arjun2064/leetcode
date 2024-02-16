@@ -1,3 +1,3 @@
 # leetcode
 
-Create to track and save approch used for future reference
+Create and save approach used for future reference
