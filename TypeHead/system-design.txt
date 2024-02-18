@@ -1,0 +1,111 @@
+Template for system design such as:
+- Features Requirement
+- API design
+- Pseudo code for specific components
+- Data model/schema
+- Back-of-the-envelope calculations
+- Reference links
+
+
+Requirement:
+
+Functional Requirement:
+
+- No. of suggestions: 10
+- Sorted order in order
+- Show most frequetly used phrases
+
+Non Functional Requirements:
+
+https://systemdesignprep.com/autocomplete
+- Highly Available: Handel disruption and able to handle the downtime
+- Highly scalable: Handle large amounts of traffic
+- Realtime sugestions : The user should be able to see suggestions in near real-time
+
+- Back-of-the-envelope calculations:
+Assuming the scale is equivalent to google, the net traffic every day is 5 billion queries, and 20% are unique and we want only 100 million words in db. Let's say we have 100 million queries in db.
+
+- Each query should is approximately 3 words long, Each word of 5 characters and 2 bytes for each character
+- 1 Query size = 3 * 5 * 2 = 30 bytes
+
+- Total storage required every day is 100 Milion*30bytes= 3 GB 
+
+We can expect the db can grow but we can eliminate the less frequently used queries. Assuming 2% new queries every day last year. So the new db is around 25 GB: 3GB+ (.02*3*365dayss)
+
+
+API Design:
+
+query_suggestions_api(query)
+add_to_db_update_the_age(query)
+
+High-level design:
+
+1. Making Recommendations
+2. Collecting information
+AJAX calls - Asynchronous Javascript and XML - it sends get, put, or post requests without reloading/submitting the page.
+
+Data Structures:
+1. Data structure to store the keys and related words in Trie and later improvements can be suffix tree
+2. TIme complexity to got the prefix is O(L) + O(N) + O(klogk) 
+where L- the number of prefixes, N is the number of nodes in the prefix, and k is the number of top suggestions in sorted order
+3. Improve the Latency store re re-computing the top the results of the top query and store as a map this increases the memory utilization
+but reduces the latency. Prefix is stored as Key and suggestions is stored as values.
+
+DataBase Required:
+
+We store the suffix trie in the file: character--> prefix -->frequency. With each node, we can store what character it contains and how many children it has. Right after each node, we should put all of its children.
+We require partition tolerance, Availability, and Scalability. Hence, NoSQL databases like Cassandra can be used.
+
+Low-level design:
+* Multiple trie servers: we need GB of storage is required but later multiple servers will be required
+* Multiple Sharding Server: With increase in number of data, sharding trie data is important. 
+* Strategic sharding is crucial :
+    - We dedicate trie for every alphabet.  It may lead to an imbalance in load.
+    - We can add another server when one fills and then split the one trie. Still cal lead to hot partition.  One server gets filled by queries from a-abd, then the next server can store from abe-cdx.
+    - Hash the words and the [(generated hash)%(number of shards)]-- increase the latency and still as it will require aggregation of results from each server.
+* Use cache to record the precomputed data. We can cache popular searched prefixes. According to the 80-20 principle, 20% of search queries generate 80% of the traffic. Thus we will cache these popular search queries so that the application servers will first check cache servers before hitting the trie servers. We can use Redis for the same.
+
+How will the Suggestions Service work?
+* It collects the popular queries and if the frequency of these is above certain threshold it will store it in tries.
+* Let's say we have a log of queries, and their weight until a certain timestamp. 
+* 
+
+
+How will the Trending Queries Service work?
+Incorporating User’s historical Search queries
+
+Incorporating User’s historical Search queries:
+* Let's say T1, T2, T3, T4, T5, T6 are trie data servers.
+* {a-fr -> T1, T2, fs-ol-> T3,T4, om-z->T5, T6}
+* Load Balance routes to the suggestion service and S1, S2 are servers
+* request with the prefix (‘ ra ’) is routed to S1.
+* S1 will first look into the distributed cache and at first it will be a cache miss
+* S1 will consult with  aggregatore service and the trie serves T5, T6 it will randomly pick and get the data like: {RATING, RATIONAL, RATAN}
+* S1 will store this in a distributed cache
+
+
+Redundancy:
+
+1. If all the shards fail data will be loss so keeps shards in different geographical locations
+2. Use more the 1 load balancer , cache, or storage instance
+3. Basically system should not be dependent on one device
+4. Create heartbeat mechanism that checks the system at a regular interval.
+
+
+- Reference links
+
+https://systemdesignprep.com/autocomplete
+https://www.prodevelopertutorial.com/system-design-example-1-system-design-for-autocomplete-for-search/
+https://dzone.com/articles/how-to-design-a-autocomplete-system
+https://atech.guide/system-design/auto-complete/
+https://medium.com/@dingdingsherrywang/system-design-autocomplete-62420021adb0
+https://www.geeksforgeeks.org/trie-insert-and-search/
+https://www.enjoyalgorithms.com/blog/design-typeahead-system
+
+
+
+
+
+
+
+
