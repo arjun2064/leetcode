@@ -5,6 +5,7 @@ class Solution {
 
 //  Definition for singly-linked list.
   public class ListNode {
+    
       int val;
       ListNode next;
       ListNode() {}
@@ -26,7 +27,7 @@ class Solution {
 
     public ListNode mergeTwoLists(ListNode list1, ListNode list2) {
         
-        
+
         ListNode temp1 = list1;
         ListNode temp2 = list2;
         ListNode head = new ListNode(100);

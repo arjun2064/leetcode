@@ -67,14 +67,10 @@ Low-level design:
 
 How will the Suggestions Service work?
 * It collects the popular queries and if the frequency of these is above certain threshold it will store it in tries.
-* Let's say we have a log of queries, and their weight until a certain timestamp. 
-* 
+* Let's say we have a lot of queries, and their weight until a certain timestamp. 
 
 
-How will the Trending Queries Service work?
-Incorporating User’s historical Search queries
 
-Incorporating User’s historical Search queries:
 * Let's say T1, T2, T3, T4, T5, T6 are trie data servers.
 * {a-fr -> T1, T2, fs-ol-> T3,T4, om-z->T5, T6}
 * Load Balance routes to the suggestion service and S1, S2 are servers
@@ -82,6 +78,18 @@ Incorporating User’s historical Search queries:
 * S1 will first look into the distributed cache and at first it will be a cache miss
 * S1 will consult with  aggregatore service and the trie serves T5, T6 it will randomly pick and get the data like: {RATING, RATIONAL, RATAN}
 * S1 will store this in a distributed cache
+
+How will the Trending Queries Service work?
+Incorporating User’s historical Search queries. Trending Queries Service works on collecting data and putting that into trie servers such that it can be used to answer future queries. 
+It collects popular or recent queries and if the frequency of these new queries is more than a certain threshold, it is stored in our trie servers.
+
+* Let's say we have a log of queries, and their weight until a certain timestamp.
+* Regularly process the logging data use map reduce to howurly calculate the frequency of all terms and frequency
+* We can use a master-slave configuration for in our trie servers. The master will serve the traffic. We will update the slave. Once updating is complete, the slave can be made our new master.
+
+Incorporating User’s historical Search queries:
+* When query request is fire it sends 2 requests one to db and one to local cache to gathere local search
+* The result of suggestion should be 60:40 60% db and 40% local
 
 
 Redundancy:
