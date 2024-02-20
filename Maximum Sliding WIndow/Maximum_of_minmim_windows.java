@@ -12,8 +12,8 @@ class Solution
         int [] result = new int[n];
         
                 
-        for(int i = 0; i<arr.length;i++){
-            result[i] = maxSlidingWindowOptimized(arr, i);
+        for(int i = 1; i<-arr.length;i++){
+            result[i-1] = maxSlidingWindowOptimized(arr, i);
         }
         return result;
         
